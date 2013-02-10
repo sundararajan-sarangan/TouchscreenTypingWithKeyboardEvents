@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import android.os.Bundle;
+import android.os.Environment;
 import android.app.Activity;
 import android.content.Intent;
 import android.view.Menu;
@@ -36,26 +37,41 @@ public class MainActivity extends Activity {
 	
 	public void navigateToTypingScreen(View view)
 	{
-		if(name.getText().toString() == "" || phone.getText().toString() == "")
+		String participantName = name.getText().toString();
+		String participantPhone = phone.getText().toString();
+		if(participantName.equals("") || participantPhone.equals(""))
 		{
 			Toast.makeText(this, "Please enter both name and phone number", Toast.LENGTH_LONG).show();
 			return;
 		}
 		
-		
-		
-		Intent intent = new Intent(this, TypingScreen.class);
-		startActivity(intent);
+		// TODO: Create new log file.
+		String newLogFileName = createFile(participantName, participantPhone);
+		if(newLogFileName != null)
+		{
+			Toast.makeText(this, "New Log File Created: " + newLogFileName, Toast.LENGTH_LONG).show();
+			Intent intent = new Intent(this, TypingScreen.class);
+			startActivity(intent);
+		}
 	}
 	
 	private void appendLog(String presentedText, String transcribedText, String inputStream)
 	{
 	}
 	
-	private void createFile(String name, String phoneNumber)
+	private String createFile(String name, String phoneNumber)
 	{
+		if(!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+		{
+			Toast.makeText(this, "Unable to read external storage device: " + Environment.getExternalStorageState() , Toast.LENGTH_LONG).show();
+			return null;
+		}
+		
 		long currentTime = System.currentTimeMillis();
-		File logFile = new File("sdcard/log.file");
+		String newFileName = name + "_" + phoneNumber + "_" + currentTime;		
+		File sdCard = Environment.getExternalStorageDirectory();
+		Toast.makeText(this, sdCard.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+		File logFile = new File(sdCard.getAbsolutePath() + "/" + "log1.txt");
 		if(!logFile.exists())
 		{
 			try
@@ -65,20 +81,29 @@ public class MainActivity extends Activity {
 			catch(IOException e)
 			{
 				System.out.println("Error creating file!!");
+				Toast.makeText(this, "Unable to create new log file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+				return null;
 			}
 		}
 		
-		try
+		if(logFile.canRead())
 		{
-			BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
-			//buf.append(text);
-		    buf.newLine();
-		    buf.close();
+			try
+			{
+				FileWriter fileWriter = new FileWriter(logFile, true);
+				BufferedWriter out = new BufferedWriter(fileWriter);
+				out.write("\n\n\n\n");
+				out.write(name + " " + phoneNumber);
+				out.write("\n");
+				out.close();
+			}
+			catch(IOException ioex)
+			{
+				// Swallowed IO Exception.
+			}
 		}
-		catch(IOException e)
-		{
-			System.out.println("Error in writing to file!");
-		}
+		
+		return newFileName;
 	}
 
 }
