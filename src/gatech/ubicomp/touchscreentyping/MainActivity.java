@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
 		String newLogFileName = createFile(participantName, participantPhone);
 		if(newLogFileName != null)
 		{
-			Toast.makeText(this, "New Log File Created: " + newLogFileName, Toast.LENGTH_LONG).show();
+			//Toast.makeText(this, "New Log File Created: " + newLogFileName, Toast.LENGTH_LONG).show();
 			Intent intent = new Intent(this, TypingScreen.class);
 			startActivity(intent);
 		}

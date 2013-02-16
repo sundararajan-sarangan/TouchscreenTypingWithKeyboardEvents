@@ -24,6 +24,7 @@ import android.view.View.OnKeyListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class TypingScreen extends Activity {
 
@@ -45,6 +46,11 @@ public class TypingScreen extends Activity {
 	
 	String before = "";
 	String after = "";
+	
+	int numberOfTrialsPerSession = 10;
+	int numberOfTrials = 0;
+	
+	CountDownTimer countDowntimer = null;
 	
 	/*
 	 * (non-Javadoc)
@@ -75,65 +81,6 @@ public class TypingScreen extends Activity {
 		warmUpTextCount++;
 		timer = new Timer();
 		phrasesCount = stringList.phrasesArray.length;
-		
-		textArea.addTextChangedListener(new TextWatcher() {
-			
-			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
-				// TODO Auto-generated method stub
-				textView.setText(textView.getText() + " On Text Changed " + s.toString() + " Start: " + start + " Before: " + before + " Count: " + count);
-				
-			}
-			
-			@Override
-			public void beforeTextChanged(CharSequence s, int start, int count,
-					int after) {
-				// TODO Auto-generated method stub
-				textView.setText(textView.getText() + " Before Text Changed " + s.toString() + " Start: " + start + " Count: " + count);
-				before = s.toString();
-			}
-			
-			@Override
-			public void afterTextChanged(Editable s) {
-				// TODO Auto-generated method stub
-				textView.setText(textView.getText() + " After Text Changed " + s.toString());
-				after = s.toString();
-				if(before.length() < after.length())
-				{
-					inputStream.append(after.charAt(after.length() - 1));
-				}
-				else
-				{
-					inputStream.append('<'); // Backspace has been hit.
-				}
-				
-				before = after = "";
-			}
-		});
-		
-		/*textArea.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-			
-			
-			
-			@Override
-			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				int a = 10;
-				a++;
-				
-				if(event.getAction() == KeyEvent.ACTION_DOWN)
-				{
-					textView.setText(textView.getText().toString() + event.getUnicodeChar() + " Down " + event.getEventTime());
-				}
-				else if(event.getAction() == KeyEvent.ACTION_UP)
-				{
-					textView.setText(textView.getText().toString() + event.getUnicodeChar() + " Up " + event.getEventTime());
-				}
-				
-				return false;
-			}
-		}); */
-		
-		
 	}
 	
 	/*@Override
@@ -143,6 +90,19 @@ public class TypingScreen extends Activity {
 		return true;
 	}*/
 	
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		//Toast.makeText(this, "onKeyUp: " + keyCode, Toast.LENGTH_SHORT).show();
+		if(keyCode == KeyEvent.KEYCODE_ENTER)
+		{
+			//Toast.makeText(this, "Inside If", Toast.LENGTH_SHORT).show();
+			submitText(null);
+			return true;
+		}
+		
+		return false;
+	};	
+	
 	/*
 	 * Method is called when the Submit button is hit. 
 	 * 1. Displays as many warm up trials as necessary.
@@ -151,44 +111,64 @@ public class TypingScreen extends Activity {
 	 */
 	public void submitText(View view)
 	{
+		//Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
+		finalizedText = textArea.getText().toString().replaceAll("[\n\r]", "");
 		TextView text = (TextView) findViewById(R.id.presentedText);
 		if(warmUpTextCount < warmUpTrials)
 		{
-			text.setText(stringList.warmUpStrings[warmUpTextCount]);
-			warmUpTextCount++;
-			if(warmUpTextCount == warmUpTrials)
-				startTimer = true;
-		}
-		else
-		{
-			if(startTimer)
+			//Toast.makeText(this, "Inside warmUpTextCount if", Toast.LENGTH_SHORT).show();
+			if(text.getText().equals(finalizedText))
 			{
-				startTimer = false;
-				new CountDownTimer(trialDuration, 1000) {
-					
-					@Override
-					public void onTick(long millisUntilFinished) {
-						long secondsRemaining = millisUntilFinished / 1000;
-						int minutesRemaining = (int)(secondsRemaining / 60);
-						int secondsPastMinute = (int)(secondsRemaining % 60);
-						timeRemaining.setText(String.valueOf(minutesRemaining) + ":" + String.valueOf(secondsPastMinute));
-					}
-					
-					@Override
-					public void onFinish() {
-						redirectToMainScreen();
-					}
-				}.start();
+				//Toast.makeText(this, "Inside comparison with finalized text", Toast.LENGTH_SHORT).show();
+				text.setText(stringList.warmUpStrings[warmUpTextCount]);
+				warmUpTextCount++;
+				if(warmUpTextCount == warmUpTrials)
+					startTimer = true;			
+				textArea.setText("");
 			}
 			else
 			{
-				finalizedText = textArea.getText().toString();
-				textArea.setText("");
-				appendLog(text.getText().toString(), finalizedText.toString(), inputStream.toString());
+				//Toast.makeText(this, "Inside else of doom", Toast.LENGTH_SHORT).show();
 			}
-			
-			int chosenPosition = randomGenerator.nextInt(phrasesCount);
-			text.setText(stringList.phrasesArray[chosenPosition]);
+		}
+		else
+		{
+			textArea.setText("");
+			//Toast.makeText(this, "Inside the big else", Toast.LENGTH_SHORT).show();
+			numberOfTrials++;
+			if(numberOfTrials < numberOfTrialsPerSession)
+			{
+				if(startTimer)
+				{
+					startTimer = false;
+					countDowntimer = new CountDownTimer(trialDuration, 1000) {
+						
+						@Override
+						public void onTick(long millisUntilFinished) {
+							long secondsRemaining = millisUntilFinished / 1000;
+							int minutesRemaining = (int)(secondsRemaining / 60);
+							int secondsPastMinute = (int)(secondsRemaining % 60);
+							timeRemaining.setText(String.valueOf(minutesRemaining) + ":" + String.valueOf(secondsPastMinute));
+						}
+						
+						@Override
+						public void onFinish() {
+							redirectToMainScreen();
+						}
+					}.start();
+				}
+				else
+				{
+					appendLog(text.getText().toString(), finalizedText.toString(), inputStream.toString());
+				}
+				
+				int chosenPosition = randomGenerator.nextInt(phrasesCount);
+				text.setText(stringList.phrasesArray[chosenPosition]);
+			}
+			else
+			{
+				redirectToMainScreen();
+			}
 		}
 	}
 	
