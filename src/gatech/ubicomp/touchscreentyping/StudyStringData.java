@@ -503,7 +503,7 @@ public class StudyStringData {
 		"everyone wants to win the lottery",
 		"the picket line gives me the chills"};
 	
-	public static String[] warmUpStrings = {"abc defgh ij k lmnop qr st uv wx yz", 
-		"a bc de fghi jk lmn opqr st uvw xyz"};
+	public static String[] warmUpStrings = {"a", 
+		"b"};
 
 }
