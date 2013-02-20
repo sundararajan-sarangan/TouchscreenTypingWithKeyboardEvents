@@ -23,6 +23,7 @@
         <activity android:name="TypingScreen">
             
         </activity>
+        <activity android:name="endScreen"></activity>
         
     </application>
 	

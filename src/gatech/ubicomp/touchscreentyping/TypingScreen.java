@@ -33,7 +33,8 @@ public class TypingScreen extends Activity {
 	int warmUpTextCount = 0;
 	TextView text;
 	int warmUpTrials = 2;
-	long trialDuration = 1200000;
+	//long trialDuration = 1200000;
+	long trialDuration = 30000;
 	private Timer timer;
 	TextView timeRemaining;
 	Random randomGenerator = new Random();
@@ -41,6 +42,9 @@ public class TypingScreen extends Activity {
 	boolean startTimer = false;
 	EditText textArea;
 	TextView textView;
+	
+	double wpm;
+	float accuracy;
 	
 	double start;
 	double end;
@@ -51,7 +55,7 @@ public class TypingScreen extends Activity {
 	String before = "";
 	String after = "";
 	
-	int numberOfTrialsPerSession = 10;
+	int numberOfTrialsPerSession = 1000;
 	int numberOfTrials = 0;
 
 	ArrayList<Float> accuracy_list = new ArrayList<Float>();	
@@ -161,15 +165,15 @@ public class TypingScreen extends Activity {
 						
 						@Override
 						public void onFinish() {
-							redirectToMainScreen();
+							redirectToEndScreen(wpm, accuracy);
 						}
 					}.start();
 				}
 				else
 				{
 					end = System.currentTimeMillis();
-					double wpm = -1;
-					float accuracy =-1 ;
+					wpm = -1;
+					accuracy =-1 ;
 					try
 					{
 
@@ -179,7 +183,7 @@ public class TypingScreen extends Activity {
 						}else{
 							wpm = WordsPM(finalizedText.toString(), (end - start) / 60000);
 						}
-						Toast.makeText(this, "Words per min: " + String.valueOf(wpm), Toast.LENGTH_SHORT).show();
+						//Toast.makeText(this, "Words per min: " + String.valueOf(wpm), Toast.LENGTH_SHORT).show();
 						int e_dist= getLevenshteinDistance(text.getText().toString(), finalizedText);
 						if (e_dist>= text.getText().toString().length() || finalizedText.length() ==0){
 							accuracy= 0;
@@ -194,13 +198,17 @@ public class TypingScreen extends Activity {
 						Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
 					}
 					
-					textView.setText("Words Per Minute: " + wpm);
+					String displayString =  "Words Per Minute: " + String.format("%.2f", wpm);
+					//textView.setText("Words Per Minute: " + wpm);
 					float acc =0;
 					for (int i=0; i <accuracy_list.size();i++){
 						acc = acc + accuracy_list.get(i);						
 					}
 					float avg_acc =acc/ accuracy_list.size();
-					textView.setText("Accuracy:"+avg_acc + "%" );
+					//textView.setText("Accuracy:"+avg_acc + "%" );
+					displayString += "\nAve. Accuracy:"+avg_acc + "%";
+					//displayString += accuracy_list.toString();
+					textView.setText(displayString);
 					appendLog(String.valueOf(wpm));
 					appendLog(text.getText().toString(), finalizedText.toString(), inputStream.toString());
 					start = System.currentTimeMillis();
@@ -211,7 +219,7 @@ public class TypingScreen extends Activity {
 			}
 			else
 			{
-				redirectToMainScreen();
+				redirectToEndScreen(wpm, accuracy);
 			}
 		}
 	}
@@ -293,14 +301,16 @@ public class TypingScreen extends Activity {
 	       prevCharWasSpace = false;
 		}*/
 		
-		Toast.makeText(this, "No. oof words: " + String.valueOf(wordCount), Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "No. oof words: " + String.valueOf(wordCount), Toast.LENGTH_SHORT).show();
 		return wordCount/time;
 	}
 
 	
-	private void redirectToMainScreen()
+	private void redirectToEndScreen(double wpm, float accuracy)
 	{
-		Intent intent = new Intent(this, MainActivity.class);
+		Intent intent = new Intent(this, endScreen.class);
+		intent.putExtra("wpm", wpm);
+		intent.putExtra("acc", accuracy);
 		startActivity(intent);
 	}
 	
