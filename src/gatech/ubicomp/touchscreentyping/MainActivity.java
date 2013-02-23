@@ -17,61 +17,73 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
 	EditText name = null;
-	EditText phone = null;
+	EditText phoneNumber = null;
+	String logFileName = "log1.txt";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
-		
+		setContentView(R.layout.activity_main);		
 		name = (EditText) findViewById(R.id.editText1);
-		phone = (EditText) findViewById(R.id.editText2);
+		phoneNumber = (EditText) findViewById(R.id.editText2);
+		LoginData.getSingleInstance();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		//getMenuInflater().inflate(R.menu.activity_main, menu);
 		return true;
+	}
+	
+	@Override
+	public void onBackPressed() {
 	}
 	
 	public void navigateToTypingScreen(View view)
 	{
-		String participantName = name.getText().toString();
-		String participantPhone = phone.getText().toString();
-		if(participantName.equals("") || participantPhone.equals(""))
+		Integer participantName;
+		Double participantPhoneNumber;
+		try
 		{
-			Toast.makeText(this, "Please enter both name and phone number", Toast.LENGTH_LONG).show();
+			participantName = Integer.valueOf(name.getText().toString());
+			participantPhoneNumber = Double.valueOf(phoneNumber.getText().toString());
+		}
+		catch (Exception e) 
+		{
+			Toast.makeText(this, "Please enter valid login credentials", Toast.LENGTH_LONG).show();
 			return;
 		}
 		
-		// TODO: Create new log file.
-		String newLogFileName = createFile(participantName, participantPhone);
-		if(newLogFileName != null)
+		if(participantName.equals("") || participantPhoneNumber.equals(""))
 		{
-			//Toast.makeText(this, "New Log File Created: " + newLogFileName, Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Please enter both id and phone number", Toast.LENGTH_LONG).show();
+			return;
+		}
+		
+		Toast.makeText(this, "Attempting log in with " + participantName + "&" + participantPhoneNumber, Toast.LENGTH_SHORT).show();
+		if(!LoginData.isValidLogin(participantName, participantPhoneNumber))
+		{
+			Toast.makeText(this, "Login not found", Toast.LENGTH_LONG).show();
+			return;
+		}
+		
+		if(logNameAndPhoneNumber(participantName, participantPhoneNumber))
+		{
 			Intent intent = new Intent(this, TypingScreen.class);
 			startActivity(intent);
 		}
 	}
 	
-	private void appendLog(String presentedText, String transcribedText, String inputStream)
-	{
-	}
-	
-	private String createFile(String name, String phoneNumber)
+	private boolean logNameAndPhoneNumber(Integer participantId, Double phoneNumber)
 	{
 		if(!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
 		{
 			Toast.makeText(this, "Unable to read external storage device: " + Environment.getExternalStorageState() , Toast.LENGTH_LONG).show();
-			return null;
+			return false;
 		}
 		
-		long currentTime = System.currentTimeMillis();
-		String newFileName = name + "_" + phoneNumber + "_" + currentTime;		
+		long logInTime = System.currentTimeMillis();	
 		File sdCard = Environment.getExternalStorageDirectory();
-		Toast.makeText(this, sdCard.getAbsolutePath(), Toast.LENGTH_SHORT).show();
-		File logFile = new File(sdCard.getAbsolutePath() + "/" + "log1.txt");
+		File logFile = new File(sdCard.getAbsolutePath() + "/" + logFileName);
 		if(!logFile.exists())
 		{
 			try
@@ -80,9 +92,8 @@ public class MainActivity extends Activity {
 			}
 			catch(IOException e)
 			{
-				System.out.println("Error creating file!!");
 				Toast.makeText(this, "Unable to create new log file: " + e.getMessage(), Toast.LENGTH_LONG).show();
-				return null;
+				return false;
 			}
 		}
 		
@@ -92,10 +103,12 @@ public class MainActivity extends Activity {
 			{
 				FileWriter fileWriter = new FileWriter(logFile, true);
 				BufferedWriter out = new BufferedWriter(fileWriter);
-				out.write("\n\n\n\n");
-				out.write(name + " " + phoneNumber);
-				out.write("\n");
+				out.write("****************************\n");
+				out.write(participantId + " " + phoneNumber + "\n");
+				out.write("Logged in at: " + String.valueOf(logInTime));
+				out.write("****************************\n");
 				out.close();
+				return true;
 			}
 			catch(IOException ioex)
 			{
@@ -103,7 +116,6 @@ public class MainActivity extends Activity {
 			}
 		}
 		
-		return newFileName;
+		return false;
 	}
-
 }

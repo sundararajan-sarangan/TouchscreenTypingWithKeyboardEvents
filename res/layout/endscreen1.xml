@@ -12,4 +12,11 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:text="" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please hand over the device to the administrator." />
+
 </LinearLayout>

@@ -5,20 +5,12 @@
     android:layout_height="match_parent" 
     tools:context=".TypingScreen">
 
-    <TextView
-        android:id="@+id/presentedText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="33dp"
-        android:layout_marginTop="120dp" />
-
     <EditText
         android:id="@+id/editText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/presentedText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
         android:layout_below="@+id/presentedText"
         android:layout_marginTop="32dp"
         android:ems="10"
@@ -37,15 +29,6 @@
         android:onClick="submitText" />  -->
 
     <TextView
-        android:id="@+id/timeRemaining"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="45dp"
-        android:layout_toRightOf="@+id/editText1" />
-
-    <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -53,5 +36,22 @@
         android:layout_below="@+id/editText1"
         android:layout_marginTop="16dp"
         android:text="" />
+
+    <TextView
+        android:id="@+id/timeRemaining"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" />
+
+    <TextView
+        android:id="@+id/presentedText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/timeRemaining"
+        android:layout_marginTop="105dp" />
 
 </RelativeLayout>

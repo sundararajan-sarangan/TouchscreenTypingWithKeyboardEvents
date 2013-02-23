@@ -21,7 +21,8 @@
         android:layout_alignLeft="@+id/textView1"
         android:layout_below="@+id/textView1"
         android:layout_marginTop="14dp"
-        android:ems="10" >
+        android:ems="10" 
+        android:inputType="number">
 
         <requestFocus />
     </EditText>
@@ -42,7 +43,8 @@
         android:layout_alignLeft="@+id/textView2"
         android:layout_below="@+id/textView2"
         android:layout_marginTop="23dp"
-        android:ems="10" />
+        android:ems="10" 
+        android:inputType="number" />
 
     <Button
         android:id="@+id/button1"

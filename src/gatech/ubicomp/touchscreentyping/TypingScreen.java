@@ -5,27 +5,19 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
-
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import android.inputmethodservice.KeyboardView;
-import android.inputmethodservice.KeyboardView.OnKeyboardActionListener;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.View;
-import android.view.View.OnKeyListener;
-import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.AlertDialog;
 
 public class TypingScreen extends Activity {
 
@@ -34,8 +26,7 @@ public class TypingScreen extends Activity {
 	TextView text;
 	int warmUpTrials = 2;
 	//long trialDuration = 1200000;
-	long trialDuration = 30000;
-	private Timer timer;
+	long trialDuration = 60000;
 	TextView timeRemaining;
 	Random randomGenerator = new Random();
 	int phrasesCount;
@@ -43,23 +34,30 @@ public class TypingScreen extends Activity {
 	EditText textArea;
 	TextView textView;
 	
+	int blockCount = 1;
+	int blockSize = 5;
+	
 	double wpm;
 	float accuracy;
-	
+	boolean isTimeUp = false;
 	double start;
 	double end;
-	
-	StringBuilder inputStream;
+
 	String finalizedText;
 	
 	String before = "";
 	String after = "";
-	
-	int numberOfTrialsPerSession = 1000;
-	int numberOfTrials = 0;
+	int trialCount = 0;
+	String logFileName = "log1.txt";
 
-	ArrayList<Float> accuracy_list = new ArrayList<Float>();	
+	ArrayList<Float> accuracyList = new ArrayList<Float>();	
+	ArrayList<Double> wpmList = new ArrayList<Double>();
 	CountDownTimer countDowntimer = null;
+	
+	float averageAccuracy;
+	double averageWPM;
+	
+	ArrayList<Integer> unusedPhraseNumbers;
 	
 	/*
 	 * (non-Javadoc)
@@ -83,30 +81,20 @@ public class TypingScreen extends Activity {
 		if(textView == null)
 			textView = (TextView) findViewById(R.id.textView1);
 		
-		inputStream = new StringBuilder();
 		finalizedText = new String();
 		
 		text.setText(stringList.warmUpStrings[warmUpTextCount]);
 		warmUpTextCount++;
-		timer = new Timer();
 		phrasesCount = stringList.phrasesArray.length;
-		
-		
+		unusedPhraseNumbers = new ArrayList<Integer>(phrasesCount);
+		for(int i = 0; i < phrasesCount; i++)
+			unusedPhraseNumbers.add(i);
 	}
-	
-	/*@Override
-	public boolean dispatchKeyEvent(KeyEvent event)
-	{
-		textView.setText(textView.getText().toString() + event.getUnicodeChar() + event.getEventTime() + event.getAction());
-		return true;
-	}*/
 	
 	@Override
 	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		//Toast.makeText(this, "onKeyUp: " + keyCode, Toast.LENGTH_SHORT).show();
 		if(keyCode == KeyEvent.KEYCODE_ENTER)
 		{
-			//Toast.makeText(this, "Inside If", Toast.LENGTH_SHORT).show();
 			submitText(null);
 			return true;
 		}
@@ -121,33 +109,26 @@ public class TypingScreen extends Activity {
 	 * 3. After each Submit is clicked, it *logs data* and presents the next one till the timer runs out.
 	 */
 	public void submitText(View view)
-	{		
-		//Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
+	{	
+		Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
 		finalizedText = textArea.getText().toString().replaceAll("[\n\r]", "");
 		TextView text = (TextView) findViewById(R.id.presentedText);
 		if(warmUpTextCount < warmUpTrials)
 		{
-			//Toast.makeText(this, "Inside warmUpTextCount if", Toast.LENGTH_SHORT).show();
 			if(text.getText().equals(finalizedText))
 			{
-				//Toast.makeText(this, "Inside comparison with finalized text", Toast.LENGTH_SHORT).show();
 				text.setText(stringList.warmUpStrings[warmUpTextCount]);
 				warmUpTextCount++;
 				if(warmUpTextCount == warmUpTrials)
 					startTimer = true;			
 				textArea.setText("");
 			}
-			else
-			{
-				//Toast.makeText(this, "Inside else of doom", Toast.LENGTH_SHORT).show();
-			}
 		}
 		else
 		{
 			textArea.setText("");
-			//Toast.makeText(this, "Inside the big else", Toast.LENGTH_SHORT).show();
-			numberOfTrials++;
-			if(numberOfTrials < numberOfTrialsPerSession)
+			trialCount++;
+			if(trialCount < blockSize)
 			{
 				if(startTimer)
 				{
@@ -165,166 +146,196 @@ public class TypingScreen extends Activity {
 						
 						@Override
 						public void onFinish() {
-							redirectToEndScreen(wpm, accuracy);
+							isTimeUp = true;
+							timeRemaining.setText("Time up. You may finish the current block.");
 						}
 					}.start();
 				}
 				else
 				{
-					end = System.currentTimeMillis();
-					wpm = -1;
-					accuracy =-1 ;
-					try
-					{
-
-						//Toast.makeText(this, String.valueOf(start) + " " + String.valueOf(end), Toast.LENGTH_SHORT).show();
-						if(finalizedText.length() ==0 ){
-							wpm =0;
-						}else{
-							wpm = WordsPM(finalizedText.toString(), (end - start) / 60000);
-						}
-						//Toast.makeText(this, "Words per min: " + String.valueOf(wpm), Toast.LENGTH_SHORT).show();
-						int e_dist= getLevenshteinDistance(text.getText().toString(), finalizedText);
-						if (e_dist>= text.getText().toString().length() || finalizedText.length() ==0){
-							accuracy= 0;
-						}else {
-						accuracy = (text.getText().toString().length()- e_dist)*100/ text.getText().toString().length();
-						accuracy_list.add(accuracy);
-						}//Toast.makeText(this, "Accuracy: " + String.valueOf(accuracy) , Toast.LENGTH_SHORT).show();
-						
-					}
-					catch(Exception e)
-					{
-						Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-					}
-					
-					String displayString =  "Words Per Minute: " + String.format("%.2f", wpm);
-					//textView.setText("Words Per Minute: " + wpm);
-					float acc =0;
-					for (int i=0; i <accuracy_list.size();i++){
-						acc = acc + accuracy_list.get(i);						
-					}
-					float avg_acc =acc/ accuracy_list.size();
-					//textView.setText("Accuracy:"+avg_acc + "%" );
-					displayString += "\nAve. Accuracy:"+avg_acc + "%";
-					//displayString += accuracy_list.toString();
-					textView.setText(displayString);
-					appendLog(String.valueOf(wpm));
-					appendLog(text.getText().toString(), finalizedText.toString(), inputStream.toString());
-					start = System.currentTimeMillis();
+					calculateStatsAndLogText();
 				}
 				
-				int chosenPosition = randomGenerator.nextInt(phrasesCount);
-				text.setText(stringList.phrasesArray[chosenPosition]);
+				displayNextRandomPhrase();
 			}
 			else
 			{
-				redirectToEndScreen(wpm, accuracy);
+				calculateStatsAndLogText();
+				if(isTimeUp)
+				{
+					appendLog("****************************\n\n\n\n");
+					redirectToEndScreen();
+				}
+				else
+				{
+					AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+					alertDialog.setTitle("End of Block " + String.valueOf(blockCount));
+					alertDialog.setMessage("Last WPM: " + String.valueOf(wpm) + " Last Acc: " + String.valueOf(accuracy) + "\nAverage WPM: " + String.valueOf(averageWPM) + " Average Acc: " + String.valueOf(averageAccuracy));
+					alertDialog.setButton("OK", new DialogInterface.OnClickListener()
+					{
+						@Override
+						public void onClick(DialogInterface dialog, int which)
+						{
+							dialog.cancel();
+						}
+					});
+					
+					alertDialog.show();
+					trialCount = 0;
+					blockCount++;
+					displayNextRandomPhrase();
+				} 
 			}
 		}
 	}
-
-	public int getLevenshteinDistance(String s, String t) {
-	      if (s == null || t == null) {
-	          throw new IllegalArgumentException("Strings must not be null");
-	      }
-
-
-	      int n = s.length(); // length of s
-	      int m = t.length(); // length of t
-
-	      if (n == 0) {
-	          return m;
-	      } else if (m == 0) {
-	          return n;
-	      }
-
-	      if (n > m) {
-	          // swap the input strings to consume less memory
-	          String tmp = s;
-	          s = t;
-	          t = tmp;
-	          n = m;
-	          m = t.length();
-	      }
-
-	      int p[] = new int[n+1]; //'previous' cost array, horizontally
-	      int d[] = new int[n+1]; // cost array, horizontally
-	      int _d[]; //placeholder to assist in swapping p and d
-
-	      // indexes into strings s and t
-	      int i; // iterates through s
-	      int j; // iterates through t
-
-	      char t_j; // jth character of t
-
-	      int cost; // cost
-
-	      for (i = 0; i<=n; i++) {
-	          p[i] = i;
-	      }
-
-	      for (j = 1; j<=m; j++) {
-	          t_j = t.charAt(j-1);
-	          d[0] = j;
-
-	          for (i=1; i<=n; i++) {
-	              cost = s.charAt(i-1)==t_j ? 0 : 1;
-	              // minimum of cell to the left+1, to the top+1, diagonally left and up +cost
-	              d[i] = Math.min(Math.min(d[i-1]+1, p[i]+1),  p[i-1]+cost);
-	          }
-
-	          // copy current distance counts to 'previous row' distance counts
-	          _d = p;
-	          p = d;
-	          d = _d;
-	      }
-
-	      // our last action in the above loop was to switch d and p, so p now 
-	      // actually has the most recent cost counts
-	      return p[n];
-	  }
 	
+	private void displayNextRandomPhrase()
+	{
+		int chosenPosition = randomGenerator.nextInt(phrasesCount);
+		text.setText(stringList.phrasesArray[unusedPhraseNumbers.remove(chosenPosition)]);
+	}
+	
+	private void calculateStatsAndLogText()
+	{
+		end = System.currentTimeMillis();
+		try
+		{
+			if(finalizedText.length() == 0)
+			{
+				wpm = 0;
+			}else
+			{
+				wpm = WordsPM(finalizedText.toString(), (end - start) / 60000);
+			}
+			
+			wpmList.add(wpm);
+			int e_dist = getLevenshteinDistance(text.getText().toString(), finalizedText);
+			if (e_dist >= text.getText().toString().length() || finalizedText.length() == 0)
+			{
+				accuracy= 0;
+			}
+			else 
+			{
+				accuracy = (text.getText().toString().length() - e_dist) * 100 / text.getText().toString().length();
+				accuracyList.add(accuracy);
+			}
+		}
+		catch(Exception e)
+		{
+			Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+		}
+		
+		String displayString =  "Words Per Minute: " + String.format("%.2f", wpm) + "\n";
+		displayString += "Accuracy: " + String.format("%.2f", accuracy) + "%\n";
+		float cumulativeAccuracy = 0;
+		for (int i = 0; i < accuracyList.size(); i++)
+		{
+			cumulativeAccuracy = cumulativeAccuracy + accuracyList.get(i);						
+		}
+		
+		averageAccuracy = cumulativeAccuracy / accuracyList.size();
+		double cummulativeWPM = 0;
+		for(int i = 0; i < wpmList.size(); i++)
+		{
+			cummulativeWPM = cummulativeWPM + wpmList.get(i);
+		}
+		
+		averageWPM = cummulativeWPM / wpmList.size();
+		displayString += "Ave. Accuracy: " + String.valueOf(averageAccuracy) + "%\n";
+		displayString += "Ave. WPM: " + String.valueOf(averageWPM) + "\n";
+		textView.setText(displayString);
+		appendLog("WPM " + String.valueOf(wpm));
+		appendLog("ACC " + String.valueOf(accuracy));
+		appendLog("Presented " + text.getText().toString());
+		appendLog("Transcribed " + finalizedText.toString());
+		start = System.currentTimeMillis();
+	}
+
+	public int getLevenshteinDistance(String s, String t) 
+	{
+		if (s == null || t == null) 
+		{
+			throw new IllegalArgumentException("Strings must not be null");
+	    }
+		
+		int n = s.length(); // length of s
+	    int m = t.length(); // length of t
+	    if (n == 0) 
+	    {
+	    	return m;
+	    } 
+	    else if (m == 0) 
+	    {
+	          return n;
+	    }
+	
+	    if (n > m) 
+	    {
+	    	// swap the input strings to consume less memory
+	        String tmp = s;
+	        s = t;
+		    t = tmp;
+		    n = m;
+		    m = t.length();
+		}
+
+		int p[] = new int[n+1]; //'previous' cost array, horizontally
+		int d[] = new int[n+1]; // cost array, horizontally
+		int _d[]; //placeholder to assist in swapping p and d
+
+		// indexes into strings s and t
+	    int i; // iterates through s
+	    int j; // iterates through t
+	    char t_j; // jth character of t
+	    int cost; // cost
+        for (i = 0; i<=n; i++) 
+        {
+        	p[i] = i;
+	    }
+        
+        for (j = 1; j<=m; j++) 
+        {
+	        t_j = t.charAt(j-1);
+	        d[0] = j;
+	        for (i=1; i<=n; i++) 
+	        {
+	        	cost = s.charAt(i-1)==t_j ? 0 : 1;
+	        	// minimum of cell to the left+1, to the top+1, diagonally left and up +cost
+	            d[i] = Math.min(Math.min(d[i-1]+1, p[i]+1),  p[i-1]+cost);
+	        }
+
+	        // copy current distance counts to 'previous row' distance counts
+	        _d = p;
+	        p = d;
+	        d = _d;
+        }
+
+	    // our last action in the above loop was to switch d and p, so p now 
+	    // actually has the most recent cost counts
+        return p[n];
+	}	
 	
 	private double WordsPM(String str1, double time)
 	{
-		//boolean prevCharWasSpace=true;
-		int wordCount = str1.split("\\s+").length;
-		/*for (int i = 0; i < str1.length(); i++) 
-		{
-			if (str1.charAt(i) == ' ') {
-				prevCharWasSpace=true;
-		}
-		else
-		{
-	       if(prevCharWasSpace) wordCount++;
-	       prevCharWasSpace = false;
-		}*/
-		
-		//Toast.makeText(this, "No. oof words: " + String.valueOf(wordCount), Toast.LENGTH_SHORT).show();
+		int wordCount = str1.split("\\s+").length;		
 		return wordCount/time;
 	}
-
 	
-	private void redirectToEndScreen(double wpm, float accuracy)
+	private void redirectToEndScreen()
 	{
+		Toast.makeText(this, "Going to redirect", Toast.LENGTH_SHORT).show();
 		Intent intent = new Intent(this, endScreen.class);
-		intent.putExtra("wpm", wpm);
-		intent.putExtra("acc", accuracy);
+		intent.putExtra("lastWpm", wpm);
+		intent.putExtra("lastAcc", accuracy);
+		intent.putExtra("aveWPM", averageWPM);
+		intent.putExtra("aveAcc", averageAccuracy);
 		startActivity(intent);
-	}
-	
-	private void appendLog(String presentedText, String transcribedText, String inputStream)
-	{
-		appendLog(presentedText);
-		appendLog(transcribedText);
-		appendLog(inputStream);
-		appendLog("");
 	}
 	
 	private void appendLog(String text)
 	{
-		File logFile = new File("sdcard/log1.txt");
+		File sdCard = Environment.getExternalStorageDirectory();
+		File logFile = new File(sdCard.getAbsolutePath() + "/" + logFileName);
 		if(!logFile.exists())
 		{
 			try
@@ -348,5 +359,11 @@ public class TypingScreen extends Activity {
 		{
 			System.out.println("Error in writing to file!");
 		}
+	}
+	
+	@Override
+	public void onBackPressed() 
+	{
+		// Do nothing. Get the event and swallow it!
 	}
 }
