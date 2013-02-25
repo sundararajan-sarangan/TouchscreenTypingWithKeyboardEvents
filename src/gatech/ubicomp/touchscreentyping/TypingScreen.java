@@ -10,10 +10,12 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -89,6 +91,9 @@ public class TypingScreen extends Activity {
 		unusedPhraseNumbers = new ArrayList<Integer>(phrasesCount);
 		for(int i = 0; i < phrasesCount; i++)
 			unusedPhraseNumbers.add(i);
+				
+		InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+		mgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 	}
 	
 	@Override
@@ -110,7 +115,7 @@ public class TypingScreen extends Activity {
 	 */
 	public void submitText(View view)
 	{	
-		Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
 		finalizedText = textArea.getText().toString().replaceAll("[\n\r]", "");
 		TextView text = (TextView) findViewById(R.id.presentedText);
 		if(warmUpTextCount < warmUpTrials)
@@ -163,14 +168,14 @@ public class TypingScreen extends Activity {
 				calculateStatsAndLogText();
 				if(isTimeUp)
 				{
-					appendLog("****************************\n\n\n\n");
+					appendLog("\n****************************\n\n\n\n");
 					redirectToEndScreen();
 				}
 				else
 				{
 					AlertDialog alertDialog = new AlertDialog.Builder(this).create();
 					alertDialog.setTitle("End of Block " + String.valueOf(blockCount));
-					alertDialog.setMessage("Last WPM: " + String.valueOf(wpm) + " Last Acc: " + String.valueOf(accuracy) + "\nAverage WPM: " + String.valueOf(averageWPM) + " Average Acc: " + String.valueOf(averageAccuracy));
+					alertDialog.setMessage("Last WPM: " + String.format("%.2f", wpm) + " Last Acc: " + String.format("%.2f", accuracy) + "%\nAverage WPM: " + String.format("%.2f", averageWPM) + " Average Acc: " + String.format("%.2f", averageAccuracy) + "%");
 					alertDialog.setButton("OK", new DialogInterface.OnClickListener()
 					{
 						@Override
@@ -241,8 +246,8 @@ public class TypingScreen extends Activity {
 		}
 		
 		averageWPM = cummulativeWPM / wpmList.size();
-		displayString += "Ave. Accuracy: " + String.valueOf(averageAccuracy) + "%\n";
-		displayString += "Ave. WPM: " + String.valueOf(averageWPM) + "\n";
+		displayString += "Avg. Accuracy: " + String.format("%.2f", averageAccuracy) + "%\n";
+		displayString += "Avg. WPM: " + String.format("%.2f", averageWPM) + "\n";
 		textView.setText(displayString);
 		appendLog("WPM " + String.valueOf(wpm));
 		appendLog("ACC " + String.valueOf(accuracy));
@@ -323,7 +328,7 @@ public class TypingScreen extends Activity {
 	
 	private void redirectToEndScreen()
 	{
-		Toast.makeText(this, "Going to redirect", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Going to redirect", Toast.LENGTH_SHORT).show();
 		Intent intent = new Intent(this, endScreen.class);
 		intent.putExtra("lastWpm", wpm);
 		intent.putExtra("lastAcc", accuracy);

@@ -20,7 +20,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/> 
             </intent-filter>
         </activity>
-        <activity android:name="TypingScreen">
+        <activity android:name="TypingScreen"
+            android:windowSoftInputMode="stateVisible">
             
         </activity>
         <activity android:name="endScreen"></activity>

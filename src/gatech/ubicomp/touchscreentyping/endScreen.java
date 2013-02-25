@@ -15,19 +15,24 @@ public class endScreen extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.endscreen1);
-		Bundle b = getIntent().getExtras();
-		wpm = b.getDouble("lastWpm");
-		accuracy = b.getFloat("lastAcc");
-		
-		avgWPM = b.getDouble("aveWPM");
-		avgAccuracy = b.getFloat("aveAcc");
-		
-		Toast.makeText(this, "Started and initialized endScreen", Toast.LENGTH_SHORT).show();
-		
-		TextView tv = (TextView) findViewById(R.id.text1);
-		tv.setText(String.format("Last wpm: %.2f", wpm) + String.format("\nLast Accuracy: %.2f%", accuracy) + String.format("\nAverage wpm: %.2f", avgWPM) + String.format("\nAverage accuracy: %.2f%", avgAccuracy));
+		try
+		{
+			super.onCreate(savedInstanceState);
+			setContentView(R.layout.endscreen1);
+			Bundle b = getIntent().getExtras();
+			wpm = b.getDouble("lastWpm");
+			accuracy = b.getFloat("lastAcc");
+			
+			avgWPM = b.getDouble("aveWPM");
+			avgAccuracy = b.getFloat("aveAcc");
+			
+			TextView tv = (TextView) findViewById(R.id.text1);
+			tv.setText("Last wpm: " + String.format("%.2f", wpm) + "\nLast Accuracy: " + String.format("%.2f", accuracy) + "\nAverage wpm: " + String.format("%.2f", avgWPM) + "\nAverage accuracy: " + String.format("%.2f", avgAccuracy));
+		}
+		catch(Exception e)
+		{
+			Toast.makeText(this, "Error in calculating your last performance. Please hand over to the administrator", Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	public void quitApplication(View view)
