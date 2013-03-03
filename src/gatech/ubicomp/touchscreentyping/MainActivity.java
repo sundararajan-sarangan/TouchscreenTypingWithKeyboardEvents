@@ -59,7 +59,7 @@ public class MainActivity extends Activity {
 			return;
 		}
 		
-		Toast.makeText(this, "Attempting log in with " + participantName + "&" + participantPhoneNumber, Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, "Attempting log in with " + participantName + "&" + participantPhoneNumber, Toast.LENGTH_SHORT).show();
 		if(!LoginData.isValidLogin(participantName, participantPhoneNumber))
 		{
 			Toast.makeText(this, "Login not found", Toast.LENGTH_LONG).show();

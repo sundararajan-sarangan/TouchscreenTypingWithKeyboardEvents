@@ -13,6 +13,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -26,10 +28,10 @@ public class TypingScreen extends Activity {
 	StudyStringData stringList = new StudyStringData();
 	int warmUpTextCount = 0;
 	TextView text;
-	int warmUpTrials = 2;
-	//long trialDuration = 1200000;
-	long trialDuration = 60000;
-	TextView timeRemaining;
+	int warmUpTrials = 1;
+	long trialDuration = 1200000;
+	//long trialDuration = 60000;
+	//TextView timeRemaining;
 	Random randomGenerator = new Random();
 	int phrasesCount;
 	boolean startTimer = false;
@@ -37,7 +39,7 @@ public class TypingScreen extends Activity {
 	TextView textView;
 	
 	int blockCount = 1;
-	int blockSize = 5;
+	int blockSize = 10;
 	
 	double wpm;
 	float accuracy;
@@ -60,6 +62,7 @@ public class TypingScreen extends Activity {
 	double averageWPM;
 	
 	ArrayList<Integer> unusedPhraseNumbers;
+	boolean waitingForFirstKeyPress = false;
 	
 	/*
 	 * (non-Javadoc)
@@ -74,8 +77,8 @@ public class TypingScreen extends Activity {
 		if(text == null)
 			text = (TextView) findViewById(R.id.presentedText);
 		
-		if(timeRemaining == null)
-			timeRemaining = (TextView) findViewById(R.id.timeRemaining);
+		/*if(timeRemaining == null)
+			timeRemaining = (TextView) findViewById(R.id.timeRemaining); */
 		
 		if(textArea == null)
 			textArea = (EditText) findViewById(R.id.editText1);
@@ -86,7 +89,7 @@ public class TypingScreen extends Activity {
 		finalizedText = new String();
 		
 		text.setText(stringList.warmUpStrings[warmUpTextCount]);
-		warmUpTextCount++;
+		//warmUpTextCount++;
 		phrasesCount = stringList.phrasesArray.length;
 		unusedPhraseNumbers = new ArrayList<Integer>(phrasesCount);
 		for(int i = 0; i < phrasesCount; i++)
@@ -94,6 +97,36 @@ public class TypingScreen extends Activity {
 				
 		InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 		mgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+		
+		textArea.addTextChangedListener(new TextWatcher()
+		{
+			
+			@Override
+			public void onTextChanged(CharSequence s, int strt, int before, int count)
+			{
+				if(waitingForFirstKeyPress)
+				{
+					start = System.currentTimeMillis();
+					waitingForFirstKeyPress = false;
+					//Toast.makeText(TypingScreen.this, "wpm timer started: " + s.toString(), Toast.LENGTH_SHORT).show();
+				}
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after)
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s)
+			{
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 	
 	@Override
@@ -117,6 +150,9 @@ public class TypingScreen extends Activity {
 	{	
 		//Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
 		finalizedText = textArea.getText().toString().replaceAll("[\n\r]", "");
+		if(finalizedText.length() < 5)
+			return;
+		
 		TextView text = (TextView) findViewById(R.id.presentedText);
 		if(warmUpTextCount < warmUpTrials)
 		{
@@ -130,7 +166,7 @@ public class TypingScreen extends Activity {
 			}
 		}
 		else
-		{
+		{			
 			textArea.setText("");
 			trialCount++;
 			if(trialCount < blockSize)
@@ -146,13 +182,13 @@ public class TypingScreen extends Activity {
 							long secondsRemaining = millisUntilFinished / 1000;
 							int minutesRemaining = (int)(secondsRemaining / 60);
 							int secondsPastMinute = (int)(secondsRemaining % 60);
-							timeRemaining.setText(String.valueOf(minutesRemaining) + ":" + String.valueOf(secondsPastMinute));
+							//timeRemaining.setText(String.valueOf(minutesRemaining) + ":" + String.valueOf(secondsPastMinute));
 						}
 						
 						@Override
 						public void onFinish() {
 							isTimeUp = true;
-							timeRemaining.setText("Time up. You may finish the current block.");
+							//timeRemaining.setText("Time up. You may finish the current block.");
 						}
 					}.start();
 				}
@@ -174,8 +210,8 @@ public class TypingScreen extends Activity {
 				else
 				{
 					AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-					alertDialog.setTitle("End of Block " + String.valueOf(blockCount));
-					alertDialog.setMessage("Last WPM: " + String.format("%.2f", wpm) + " Last Acc: " + String.format("%.2f", accuracy) + "%\nAverage WPM: " + String.format("%.2f", averageWPM) + " Average Acc: " + String.format("%.2f", averageAccuracy) + "%");
+					alertDialog.setTitle("End of Block");
+					alertDialog.setMessage("            AVG     LAST\nWPM: " + String.format("%.2f", averageWPM) + "   " + String.format("%.2f", wpm) + "\nACC:   " + String.format("%.2f", accuracy) + "%   " + String.format("%.2f", averageAccuracy) + "%");
 					alertDialog.setButton("OK", new DialogInterface.OnClickListener()
 					{
 						@Override
@@ -198,10 +234,12 @@ public class TypingScreen extends Activity {
 	{
 		int chosenPosition = randomGenerator.nextInt(phrasesCount);
 		text.setText(stringList.phrasesArray[unusedPhraseNumbers.remove(chosenPosition)]);
+		waitingForFirstKeyPress = true;
 	}
 	
 	private void calculateStatsAndLogText()
 	{
+		String displayString = "";
 		end = System.currentTimeMillis();
 		try
 		{
@@ -230,8 +268,8 @@ public class TypingScreen extends Activity {
 			Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
 		}
 		
-		String displayString =  "Words Per Minute: " + String.format("%.2f", wpm) + "\n";
-		displayString += "Accuracy: " + String.format("%.2f", accuracy) + "%\n";
+		//String displayString =  "Words Per Minute: " + String.format("%.2f", wpm) + "\n";
+		//displayString += "Accuracy: " + String.format("%.2f", accuracy) + "%\n";
 		float cumulativeAccuracy = 0;
 		for (int i = 0; i < accuracyList.size(); i++)
 		{
@@ -246,14 +284,15 @@ public class TypingScreen extends Activity {
 		}
 		
 		averageWPM = cummulativeWPM / wpmList.size();
-		displayString += "Avg. Accuracy: " + String.format("%.2f", averageAccuracy) + "%\n";
-		displayString += "Avg. WPM: " + String.format("%.2f", averageWPM) + "\n";
+		displayString += "           AVG       LAST\n";
+		displayString += "ACC:  " + String.format("%.2f", averageAccuracy) + "%   " + String.format("%.2f", accuracy) + "%\n";
+		displayString += "WPM: " + String.format("%.2f", averageWPM) + "   " + String.format("%.2f", wpm);
 		textView.setText(displayString);
 		appendLog("WPM " + String.valueOf(wpm));
 		appendLog("ACC " + String.valueOf(accuracy));
 		appendLog("Presented " + text.getText().toString());
 		appendLog("Transcribed " + finalizedText.toString());
-		start = System.currentTimeMillis();
+		//start = System.currentTimeMillis();
 	}
 
 	public int getLevenshteinDistance(String s, String t) 
