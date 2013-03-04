@@ -12,6 +12,8 @@ public class endScreen extends Activity {
 	float accuracy;
 	double avgWPM;
 	float avgAccuracy;
+	double pay;
+	//int blockCount;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -23,11 +25,17 @@ public class endScreen extends Activity {
 			wpm = b.getDouble("lastWpm");
 			accuracy = b.getFloat("lastAcc");
 			
+			
 			avgWPM = b.getDouble("aveWPM");
 			avgAccuracy = b.getFloat("aveAcc");
+			//blockCount= b.getInt("blockcount");
+			pay=avgWPM*0.1*(avgAccuracy/100);
+			if(pay<2.5)
+				pay=2.5;
+			
 			
 			TextView tv = (TextView) findViewById(R.id.text1);
-			tv.setText("Last wpm: " + String.format("%.2f", wpm) + "\nLast Accuracy: " + String.format("%.2f", accuracy) + "\nAverage wpm: " + String.format("%.2f", avgWPM) + "\nAverage accuracy: " + String.format("%.2f", avgAccuracy));
+			tv.setText("Session over. Please hand the phone to the researcher.\n"+ "Last wpm: " + String.format("%.2f", wpm) + "\nLast Accuracy: " + String.format("%.2f", accuracy) + "\nAverage wpm: " + String.format("%.2f", avgWPM) + "\nAverage accuracy: " + String.format("%.2f", avgAccuracy)+"\nThe researcher should pay you $" + String.format("%.2f",pay));
 		}
 		catch(Exception e)
 		{

@@ -29,7 +29,7 @@ public class TypingScreen extends Activity {
 	int warmUpTextCount = 0;
 	TextView text;
 	int warmUpTrials = 1;
-	long trialDuration = 1200000;
+	long trialDuration = 1200;
 	//long trialDuration = 60000;
 	//TextView timeRemaining;
 	Random randomGenerator = new Random();
