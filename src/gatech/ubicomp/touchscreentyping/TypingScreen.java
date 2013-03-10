@@ -29,7 +29,8 @@ public class TypingScreen extends Activity {
 	int warmUpTextCount = 0;
 	TextView text;
 	int warmUpTrials = 1;
-	long trialDuration = 1200;
+	//long trialDuration = 1200;
+	long trialDuration = 1200000;
 	//long trialDuration = 60000;
 	//TextView timeRemaining;
 	Random randomGenerator = new Random();
@@ -148,6 +149,8 @@ public class TypingScreen extends Activity {
 	 */
 	public void submitText(View view)
 	{	
+		try
+		{
 		//Toast.makeText(this, "Inside submitText", Toast.LENGTH_SHORT).show();
 		finalizedText = textArea.getText().toString().replaceAll("[\n\r]", "");
 		if(finalizedText.length() < 5)
@@ -228,11 +231,16 @@ public class TypingScreen extends Activity {
 				} 
 			}
 		}
+		}
+		catch(Exception ex)
+		{
+			appendLog(ex.getMessage());
+		}
 	}
 	
 	private void displayNextRandomPhrase()
 	{
-		int chosenPosition = randomGenerator.nextInt(phrasesCount);
+		int chosenPosition = randomGenerator.nextInt(unusedPhraseNumbers.size());
 		text.setText(stringList.phrasesArray[unusedPhraseNumbers.remove(chosenPosition)]);
 		waitingForFirstKeyPress = true;
 	}
