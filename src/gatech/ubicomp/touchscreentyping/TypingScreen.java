@@ -207,7 +207,7 @@ public class TypingScreen extends Activity {
 				calculateStatsAndLogText();
 				if(isTimeUp)
 				{
-					appendLog("\n****************************\n\n\n\n");
+					appendLog("\n#####");
 					redirectToEndScreen();
 				}
 				else
@@ -296,10 +296,12 @@ public class TypingScreen extends Activity {
 		displayString += "ACC:  " + String.format("%.2f", averageAccuracy) + "%   " + String.format("%.2f", accuracy) + "%\n";
 		displayString += "WPM: " + String.format("%.2f", averageWPM) + "   " + String.format("%.2f", wpm);
 		textView.setText(displayString);
-		appendLog("WPM " + String.valueOf(wpm));
-		appendLog("ACC " + String.valueOf(accuracy));
-		appendLog("Presented " + text.getText().toString());
-		appendLog("Transcribed " + finalizedText.toString());
+        appendLog("=@=");      
+		appendLog("WPM=" + String.valueOf(wpm));
+		appendLog("ACC=" + String.valueOf(accuracy));
+		appendLog("P=" + text.getText().toString());
+		appendLog("T=" + finalizedText.toString());
+        appendLog("=$=");
 		//start = System.currentTimeMillis();
 	}
 
