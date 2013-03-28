@@ -69,6 +69,7 @@ public class MainActivity extends Activity {
 		if(logNameAndPhoneNumber(participantName, participantPhoneNumber))
 		{
 			Intent intent = new Intent(this, TypingScreen.class);
+			intent.putExtra("uid", participantName);
 			startActivity(intent);
 		}
 	}

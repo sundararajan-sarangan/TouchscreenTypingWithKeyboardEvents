@@ -34,6 +34,7 @@ public class TypingScreen extends Activity {
 	//long trialDuration = 60000;
 	//TextView timeRemaining;
 	Random randomGenerator = new Random();
+	
 	int phrasesCount;
 	boolean startTimer = false;
 	EditText textArea;
@@ -42,6 +43,8 @@ public class TypingScreen extends Activity {
 	int blockCount = 1;
 	int blockSize = 10;
 	
+	int uid;
+	
 	double wpm;
 	float accuracy;
 	boolean isTimeUp = false;
@@ -49,6 +52,8 @@ public class TypingScreen extends Activity {
 	double end;
 
 	String finalizedText;
+	
+	int numBackspaces = 0;
 	
 	String before = "";
 	String after = "";
@@ -64,6 +69,8 @@ public class TypingScreen extends Activity {
 	
 	ArrayList<Integer> unusedPhraseNumbers;
 	boolean waitingForFirstKeyPress = false;
+	
+	int phraseNumber = 0;
 	
 	/*
 	 * (non-Javadoc)
@@ -128,6 +135,9 @@ public class TypingScreen extends Activity {
 				
 			}
 		});
+		
+		Bundle b = getIntent().getExtras();
+		uid = b.getInt("uid");
 	}
 	
 	@Override
@@ -136,6 +146,10 @@ public class TypingScreen extends Activity {
 		{
 			submitText(null);
 			return true;
+		}
+		if(keyCode == KeyEvent.KEYCODE_DEL)
+		{
+			numBackspaces++;
 		}
 		
 		return false;
@@ -204,6 +218,7 @@ public class TypingScreen extends Activity {
 			}
 			else
 			{
+				phraseNumber++;
 				calculateStatsAndLogText();
 				if(isTimeUp)
 				{
@@ -240,6 +255,7 @@ public class TypingScreen extends Activity {
 	
 	private void displayNextRandomPhrase()
 	{
+		numBackspaces = 0;
 		int chosenPosition = randomGenerator.nextInt(unusedPhraseNumbers.size());
 		text.setText(stringList.phrasesArray[unusedPhraseNumbers.remove(chosenPosition)]);
 		waitingForFirstKeyPress = true;
@@ -296,13 +312,73 @@ public class TypingScreen extends Activity {
 		displayString += "ACC:  " + String.format("%.2f", averageAccuracy) + "%   " + String.format("%.2f", accuracy) + "%\n";
 		displayString += "WPM: " + String.format("%.2f", averageWPM) + "   " + String.format("%.2f", wpm);
 		textView.setText(displayString);
-        appendLog("=@=");      
-		appendLog("WPM=" + String.valueOf(wpm));
-		appendLog("ACC=" + String.valueOf(accuracy));
-		appendLog("P=" + text.getText().toString());
-		appendLog("T=" + finalizedText.toString());
-        appendLog("=$=");
+        
+		appendLog("bsp," + String.valueOf(numBackspaces));
+		appendLog("UID," + String.valueOf(uid));
+		appendLog("BLOCK," + String.valueOf(blockCount));
+		appendLog("PHRASE," + String.valueOf(trialCount));
+		appendLog("FAT_THUMBS_ON," + "false");
+		appendLog("PRESENTED_STRING," + text.getText().toString());
+		appendLog("INPUT_STREAM,");
+		appendLog("TRANSCRIBED_STRING," + finalizedText.toString());
+		appendLog("NUM_FAT_THUMBS," + "0");
+		appendLog("WPM," + String.valueOf(wpm));
+		appendLog("C," + c(text.getText().toString(), finalizedText));
+		appendLog("INF," + String.valueOf(inf(text.getText().toString(), finalizedText)));
+		appendLog("IF," + String.valueOf(incf(text.getText().toString(), finalizedText, numBackspaces)));
+		appendLog("F," + numBackspaces);
+		appendLog("ACC," + acc(text.getText().toString(), finalizedText, numBackspaces));
+		appendLog("TER," + "");
+		appendLog("CER," + "");
+		appendLog("UER," + "");        
 		//start = System.currentTimeMillis();
+	}
+	
+	private int inf(String presented, String typed)
+	{
+		return getLevenshteinDistance(presented, typed);
+	}
+	
+	private int incf(String presented, String typed, int numberBackspaces)
+	{
+		// TODO: implement incf calculation.
+		int incfixed = numberBackspaces - getLevenshteinDistance(presented, typed);		
+		return incfixed < 0 ? 0 : incfixed;
+	}
+	
+	private double totalError(String presented, String typed, int numBackspaces)
+	{
+		int C = c(presented, typed);
+		int IF = incf(presented, typed, numBackspaces);
+		int INF = inf(presented, typed);
+		
+		return (100.0 * (IF + INF)/(double)(C + INF + IF));
+	}
+	
+	private double correctedError(String presented, String typed, int numBackspaces)
+	{
+		int C = c(presented, typed);
+		int IF = incf(presented, typed, numBackspaces);
+		int INF = inf(presented, typed);
+		return (100.0 * (IF)/(double)(C + INF + IF));
+	}
+	
+	private double uncorrectedError(String presented, String typed, int numBackspaces)
+	{
+		int C = c(presented, typed);
+		int IF = incf(presented, typed, numBackspaces);
+		int INF = inf(presented, typed);
+		return (100.0 * (INF)/(double)(C + INF + IF));
+	}
+	
+	private double acc(String presented, String typed, int numBackspaces)
+	{
+		return (100.0 - uncorrectedError(presented, typed, numBackspaces));
+	}
+	
+	private int c(String presented, String typed)
+	{
+		return Math.max(typed.length(), presented.length()) - getLevenshteinDistance(presented, typed);
 	}
 
 	public int getLevenshteinDistance(String s, String t) 
@@ -412,6 +488,7 @@ public class TypingScreen extends Activity {
 		catch(IOException e)
 		{
 			System.out.println("Error in writing to file!");
+			Toast.makeText(this, "error while writing " + text + " to file", Toast.LENGTH_SHORT).show();
 		}
 	}
 	
