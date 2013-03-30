@@ -323,14 +323,14 @@ public class TypingScreen extends Activity {
 		appendLog("TRANSCRIBED_STRING," + finalizedText.toString());
 		appendLog("NUM_FAT_THUMBS," + "0");
 		appendLog("WPM," + String.valueOf(wpm));
-		appendLog("C," + c(text.getText().toString(), finalizedText));
+		appendLog("C," + String.valueOf(c(text.getText().toString(), finalizedText)));
 		appendLog("INF," + String.valueOf(inf(text.getText().toString(), finalizedText)));
 		appendLog("IF," + String.valueOf(incf(text.getText().toString(), finalizedText, numBackspaces)));
-		appendLog("F," + numBackspaces);
-		appendLog("ACC," + acc(text.getText().toString(), finalizedText, numBackspaces));
-		appendLog("TER," + "");
-		appendLog("CER," + "");
-		appendLog("UER," + "");        
+		appendLog("F," + String.valueOf(numBackspaces));
+		appendLog("ACC," + String.valueOf(acc(text.getText().toString(), finalizedText, numBackspaces)));
+		appendLog("TER," + String.valueOf(totalError(text.getText().toString(), finalizedText, numBackspaces)));
+		appendLog("CER," + String.valueOf(correctedError(text.getText().toString(), finalizedText, numBackspaces)));
+		appendLog("UER," + String.valueOf(uncorrectedError(text.getText().toString(), finalizedText, numBackspaces)));        
 		//start = System.currentTimeMillis();
 	}
 	
