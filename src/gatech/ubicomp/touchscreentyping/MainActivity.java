@@ -107,7 +107,7 @@ public class MainActivity extends Activity {
 				out.write("****************************\n");
 				out.write(participantId + " " + phoneNumber + "\n");
 				out.write("Logged in at: " + String.valueOf(logInTime));
-				out.write("****************************\n");
+				out.write("\n****************************\n");
 				out.close();
 				return true;
 			}

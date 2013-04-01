@@ -14,7 +14,7 @@
         android:layout_below="@+id/presentedText"
         android:ems="10"
         android:inputType="textVisiblePassword" 
-        android:textSize="20.0sp"
+        android:textSize="15.0sp"
         android:background="@null"
         android:imeOptions="actionNext">
         <requestFocus />
@@ -54,7 +54,7 @@
         android:layout_alignParentRight="true"
         android:layout_below="@+id/timeRemaining"
         android:layout_marginTop="105dp" 
-        android:textSize="20.0sp"
+        android:textSize="15.0sp"
         />
 
 </RelativeLayout>

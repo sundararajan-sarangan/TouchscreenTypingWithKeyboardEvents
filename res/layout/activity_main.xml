@@ -53,8 +53,8 @@
         android:layout_alignLeft="@+id/editText2"
         android:layout_alignRight="@+id/editText2"
         android:layout_below="@+id/editText2"
-        android:layout_marginTop="58dp"
-        android:text="Start!"
-        android:onClick="navigateToTypingScreen" />
+        android:layout_marginTop="16dp"
+        android:onClick="navigateToTypingScreen"
+        android:text="Start!" />
 
 </RelativeLayout>

@@ -72,6 +72,8 @@ public class TypingScreen extends Activity {
 	
 	int phraseNumber = 0;
 	
+	StringBuilder logBuffer = new StringBuilder();
+	
 	/*
 	 * (non-Javadoc)
 	 * @see android.app.Activity#onCreate(android.os.Bundle)
@@ -150,6 +152,7 @@ public class TypingScreen extends Activity {
 		if(keyCode == KeyEvent.KEYCODE_DEL)
 		{
 			numBackspaces++;
+			return true;
 		}
 		
 		return false;
@@ -223,6 +226,7 @@ public class TypingScreen extends Activity {
 				if(isTimeUp)
 				{
 					appendLog("\n#####");
+					flushLog();
 					redirectToEndScreen();
 				}
 				else
@@ -250,6 +254,7 @@ public class TypingScreen extends Activity {
 		catch(Exception ex)
 		{
 			appendLog(ex.getMessage());
+			flushLog();
 		}
 	}
 	
@@ -319,7 +324,6 @@ public class TypingScreen extends Activity {
 		appendLog("PHRASE," + String.valueOf(trialCount));
 		appendLog("FAT_THUMBS_ON," + "false");
 		appendLog("PRESENTED_STRING," + text.getText().toString());
-		appendLog("INPUT_STREAM,");
 		appendLog("TRANSCRIBED_STRING," + finalizedText.toString());
 		appendLog("NUM_FAT_THUMBS," + "0");
 		appendLog("WPM," + String.valueOf(wpm));
@@ -328,10 +332,10 @@ public class TypingScreen extends Activity {
 		appendLog("IF," + String.valueOf(incf(text.getText().toString(), finalizedText, numBackspaces)));
 		appendLog("F," + String.valueOf(numBackspaces));
 		appendLog("ACC," + String.valueOf(acc(text.getText().toString(), finalizedText, numBackspaces)));
-		appendLog("TER," + String.valueOf(totalError(text.getText().toString(), finalizedText, numBackspaces)));
-		appendLog("CER," + String.valueOf(correctedError(text.getText().toString(), finalizedText, numBackspaces)));
-		appendLog("UER," + String.valueOf(uncorrectedError(text.getText().toString(), finalizedText, numBackspaces)));        
-		//start = System.currentTimeMillis();
+		appendLog("TER," + String.valueOf(totalError(text.getText().toString(), finalizedText, numBackspaces)) + "%");
+		appendLog("CER," + String.valueOf(correctedError(text.getText().toString(), finalizedText, numBackspaces)) + "%");
+		appendLog("UER," + String.valueOf(uncorrectedError(text.getText().toString(), finalizedText, numBackspaces)) + "%");
+		flushLog();
 	}
 	
 	private int inf(String presented, String typed)
@@ -341,7 +345,6 @@ public class TypingScreen extends Activity {
 	
 	private int incf(String presented, String typed, int numberBackspaces)
 	{
-		// TODO: implement incf calculation.
 		int incfixed = numberBackspaces - getLevenshteinDistance(presented, typed);		
 		return incfixed < 0 ? 0 : incfixed;
 	}
@@ -350,8 +353,7 @@ public class TypingScreen extends Activity {
 	{
 		int C = c(presented, typed);
 		int IF = incf(presented, typed, numBackspaces);
-		int INF = inf(presented, typed);
-		
+		int INF = inf(presented, typed);		
 		return (100.0 * (IF + INF)/(double)(C + INF + IF));
 	}
 	
@@ -462,9 +464,45 @@ public class TypingScreen extends Activity {
 		startActivity(intent);
 	}
 	
-	private void appendLog(String text)
+	private void flushLog()
 	{
 		File sdCard = Environment.getExternalStorageDirectory();
+		File logFile = new File(sdCard.getAbsolutePath() + "/" + logFileName);
+		if(!logFile.exists())
+		{
+			try
+			{
+				logFile.createNewFile();
+			}
+			catch(IOException e)
+			{
+				System.out.println("Error creating file!!");
+			}
+		}
+		
+		try
+		{
+			BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));
+			buf.append(logBuffer.toString());
+		    //buf.newLine();
+		    buf.close();
+		}
+		catch(IOException e)
+		{
+			System.out.println("Error in writing to file!");
+			Toast.makeText(this, "error while writing " + text + " to file", Toast.LENGTH_SHORT).show();
+		}
+		finally
+		{
+			logBuffer = new StringBuilder();
+		}
+	}
+	
+	private void appendLog(String text)
+	{
+		logBuffer.append(text + "\n");
+		
+		/*File sdCard = Environment.getExternalStorageDirectory();
 		File logFile = new File(sdCard.getAbsolutePath() + "/" + logFileName);
 		if(!logFile.exists())
 		{
@@ -489,7 +527,7 @@ public class TypingScreen extends Activity {
 		{
 			System.out.println("Error in writing to file!");
 			Toast.makeText(this, "error while writing " + text + " to file", Toast.LENGTH_SHORT).show();
-		}
+		}*/
 	}
 	
 	@Override
