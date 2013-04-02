@@ -233,7 +233,7 @@ public class TypingScreen extends Activity {
 				{
 					AlertDialog alertDialog = new AlertDialog.Builder(this).create();
 					alertDialog.setTitle("End of Block");
-					alertDialog.setMessage("            AVG     LAST\nWPM: " + String.format("%.2f", averageWPM) + "   " + String.format("%.2f", wpm) + "\nACC:   " + String.format("%.2f", accuracy) + "%   " + String.format("%.2f", averageAccuracy) + "%");
+					alertDialog.setMessage("            AVG     LAST\nACC:   " + String.format("%.2f", averageAccuracy) + "   " + String.format("%.2f", accuracy) + "\nWPM:   " + String.format("%.2f", averageWPM) + "%   " + String.format("%.2f", wpm) + "%");
 					alertDialog.setButton("OK", new DialogInterface.OnClickListener()
 					{
 						@Override
