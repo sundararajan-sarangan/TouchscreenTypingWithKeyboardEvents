@@ -188,8 +188,8 @@ public class TypingScreen extends Activity {
 		else
 		{			
 			textArea.setText("");
-			trialCount++;
-			if(trialCount < blockSize)
+			//trialCount++;
+			if(trialCount < blockSize - 1)
 			{
 				if(startTimer)
 				{
@@ -233,7 +233,7 @@ public class TypingScreen extends Activity {
 				{
 					AlertDialog alertDialog = new AlertDialog.Builder(this).create();
 					alertDialog.setTitle("End of Block");
-					alertDialog.setMessage("            AVG     LAST\nACC:   " + String.format("%.2f", averageAccuracy) + "   " + String.format("%.2f", accuracy) + "\nWPM:   " + String.format("%.2f", averageWPM) + "%   " + String.format("%.2f", wpm) + "%");
+					alertDialog.setMessage("            AVG     LAST\nACC:   " + String.format("%.2f", averageAccuracy) + "%   " + String.format("%.2f", accuracy) + "%\nWPM:   " + String.format("%.2f", averageWPM) + "   " + String.format("%.2f", wpm));
 					alertDialog.setButton("OK", new DialogInterface.OnClickListener()
 					{
 						@Override
@@ -268,6 +268,7 @@ public class TypingScreen extends Activity {
 	
 	private void calculateStatsAndLogText()
 	{
+		trialCount++;
 		String displayString = "";
 		end = System.currentTimeMillis();
 		try
